@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { login } from '$lib/auth';
 	import { cn } from '$lib/utils';
 	import { userAuthLoginSchema, userAuthSignupSchema } from '$lib/validations/auth';
 	import toast from 'svelte-french-toast';
@@ -51,7 +52,11 @@
 				return toast.error('Something went wrong. Please try again.');
 			}
 
-			return toast.success('Your account has been created.');
+			const { token } = await res.json();
+
+			login(token);
+
+			return toast.success(signUp ? 'Account created successfully' : 'Logged in successfully');
 		} catch (error) {
 			console.log(error);
 		} finally {

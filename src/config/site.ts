@@ -11,19 +11,11 @@ export const siteConfig = {
 		{
 			title: 'Download',
 			href: '/download'
-		},
-		{
-			title: 'Discover',
-			href: '/discover'
-		},
-		{
-			title: 'Blog',
-			href: '/blog'
 		}
 	],
 	links: {
 		twitter: 'https://twitter.com/xminent',
-		github: 'https://github.com/xminent/shiki-client',
+		github: 'https://github.com/xminent/shiki-web',
 		docs: 'https://docs.shiki.space'
 	}
 };

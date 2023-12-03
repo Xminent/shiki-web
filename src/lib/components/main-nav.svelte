@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { Icons } from '$lib/components/icons';
 	import MobileNav from '$lib/components/mobile-nav.svelte';
 	import { cn } from '$lib/utils';
@@ -12,7 +13,11 @@
 	let pathname = '';
 
 	onMount(() => {
-		pathname = window.location.pathname;
+		pathname = $page.url.pathname;
+
+		page.subscribe(() => {
+			pathname = $page.url.pathname;
+		});
 	});
 </script>
 
