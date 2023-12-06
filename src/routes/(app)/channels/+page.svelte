@@ -116,15 +116,12 @@
 		const ret = messages.map(() => false);
 
 		// If we have consecutive messages sent by the same author, we compact it.
-		for (let i = 1; i < messages.length - 1; i++) {
+		for (let i = 1; i < messages.length; i++) {
 			const msg = messages[i];
 			const lastMsg = messages[i - 1];
+			const delta = Math.abs(lastMsg.createdAt.getTime() - msg.createdAt.getTime());
 
-			if (
-				msg.author.id === lastMsg.author.id &&
-				Math.abs(lastMsg.createdAt.getMilliseconds() - msg.createdAt.getMilliseconds()) <
-					5 * 60 * 1000
-			) {
+			if (msg.author.id === lastMsg.author.id && delta < 5 * 60 * 1000) {
 				ret[i] = true;
 			}
 		}
@@ -141,10 +138,27 @@
 			messages = [];
 		}
 	}
+
+	async function onSendMessage(message: string) {
+		if (!currentItem) {
+			return;
+		}
+
+		await fetch(`${PUBLIC_BACKEND_URL}/api/channels/${currentItem.id}/messages`, {
+			method: 'POST',
+			headers: {
+				Authorization: 'Bearer e2c06ec7-640d-4684-88c3-e036ea9a5e98',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				content: message
+			})
+		});
+	}
 </script>
 
 <div class="flex min-h-screen flex-row">
-	<nav class="w-[72px] bg-zinc-900 overflow-y-auto">
+	<nav class="w-[72px] bg-zinc-900 overflow-y-auto flex-shrink-0">
 		<div class="scroller overflow-auto h-[100vh] scrollbar-hide">
 			<div class="servers">
 				{#each guilds as guild}
@@ -185,7 +199,12 @@
 	</nav>
 	<Sidebar items={sidebarItems} {onItemClick} />
 	{#if currentItem}
-		<MainContent item={currentItem} {messages} compactList={getCompactList(messages)} />
+		<MainContent
+			item={currentItem}
+			{messages}
+			compactList={getCompactList(messages)}
+			{onSendMessage}
+		/>
 	{/if}
 </div>
 
