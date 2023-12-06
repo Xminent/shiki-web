@@ -5,9 +5,19 @@
 	import { cn, parseWithBigInt } from '$lib/utils';
 	import { HashIcon } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import type { Guild, Message, SidebarItem } from '../../../types/sidebar';
+	import {
+		deserializeMessage,
+		type Guild,
+		type Message,
+		type SidebarItem
+	} from '../../../types/sidebar';
 
 	let guilds: Guild[] = [
+		{
+			id: BigInt(0),
+			name: 'Home',
+			icon: 'https://cdn.discordapp.com/embed/avatars/0.png'
+		},
 		{
 			id: BigInt(1),
 			name: 'Global'
@@ -58,7 +68,22 @@
 			};
 
 			ws.onmessage = (event) => {
-				console.log({ wsData: event.data });
+				// Handle message create event.
+				const data = parseWithBigInt(event.data);
+				console.log({ wsCreate: data });
+				const { op, d } = data;
+
+				if (op === 2) {
+					const message = deserializeMessage(d);
+
+					if (!message) {
+						return;
+					}
+
+					const { channelId } = message;
+
+					updateMessages(channelId, [...($messageStore[channelId.toString()] ?? []), message]);
+				}
 			};
 		})();
 
@@ -79,8 +104,11 @@
 		});
 
 		const data = parseWithBigInt(await res.text());
+		const messages = data.map((item: any) => {
+			return deserializeMessage(item);
+		});
 
-		updateMessages(item.id, data ?? []);
+		updateMessages(item.id, messages ?? []);
 	}
 
 	let messages: Message[] = [];
