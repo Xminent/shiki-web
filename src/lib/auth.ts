@@ -1,10 +1,7 @@
+import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 
-export const token = writable();
-
-export const isAuthenticated = () => {
-	return !!token;
-};
+export const token = writable(browser ? localStorage.getItem('token') : null);
 
 export const login = (newToken: string) => {
 	token.set(newToken);

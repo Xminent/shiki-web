@@ -4,7 +4,7 @@
 	import SaulGif from '$lib/assets/images/saul.gif';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { onMount } from 'svelte';
-	import { siteConfig } from '../config/site';
+	import { siteConfig } from '../../config/site';
 
 	let platformStr = '';
 	let isDesktop = true;

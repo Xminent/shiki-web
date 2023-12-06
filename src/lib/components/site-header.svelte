@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { ThemeToggle } from '$lib';
+	import { token } from '$lib/auth';
 	import { siteConfig } from '../../config/site';
 	import { Icons } from './icons';
 	import MainNav from './main-nav.svelte';
@@ -11,7 +13,16 @@
 		<MainNav items={siteConfig.mainNav} />
 		<div class="flex flex-1 items-center justify-end space-x-4">
 			<nav class="flex items-center space-x-1">
-				<a href="/login" class={buttonVariants()}>Login</a>
+				{#if !$token}
+					<a href="/login" class={buttonVariants()}>Login</a>
+				{:else}
+					<button
+						class={buttonVariants()}
+						on:click={() => {
+							goto('/channels');
+						}}>Open Shiki</button
+					>
+				{/if}
 				<a href={siteConfig.links.github} target="_blank" rel="noreferrer">
 					<div
 						class={buttonVariants({

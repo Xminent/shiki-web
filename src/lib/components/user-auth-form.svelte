@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { login } from '$lib/auth';
 	import { cn } from '$lib/utils';
 	import { userAuthLoginSchema, userAuthSignupSchema } from '$lib/validations/auth';
@@ -55,6 +56,7 @@
 			const { token } = await res.json();
 
 			login(token);
+			goto('/');
 
 			return toast.success(signUp ? 'Account created successfully' : 'Logged in successfully');
 		} catch (error) {
