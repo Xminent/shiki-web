@@ -5,35 +5,16 @@
 	import { cn, parseWithBigInt } from '$lib/utils';
 	import { HashIcon } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import type { Message, SidebarItem } from '../../../types/sidebar';
+	import type { Guild, Message, SidebarItem } from '../../../types/sidebar';
 
-	let guilds = [
+	let guilds: Guild[] = [
 		{
-			name: 'Guild 1',
-			iconUrl:
-				'https://cdn.discordapp.com/icons/1085290351159431290/57134761dc9f989243301c488326c84c.webp?size=96',
-			channels: ['Channel 1', 'Channel 2']
-		},
-		{
-			name: 'Guild 2',
-			iconUrl:
-				'https://cdn.discordapp.com/icons/519570807006167051/5e947f8c8a1a4ae8e91cbf82d89d7cf3.webp?size=96',
-			channels: ['Channel 3', 'Channel 4']
-		},
-		{
-			name: 'Guild 3',
-			iconUrl:
-				'https://cdn.discordapp.com/icons/298146426926530561/a_501a35da94fe2db8181e8262d8d9df7d.webp?size=96',
-			channels: ['Channel 5', 'Channel 6']
-		},
-		...new Array(50).fill(0).map((_, i) => ({
-			name: `Guild ${i + 4}`,
-			iconUrl: `https://cdn.discordapp.com/icons/1081747207516078232/3568069fbb9cd0d60bdcabfd785511e8.webp?size=96`,
-			channels: [`Channel ${i + 7}`, `Channel ${i + 8}`]
-		}))
+			id: BigInt(1),
+			name: 'Global'
+		}
 	];
-	let selectedGuild = guilds[0];
-	let activeGuild: { name: string; iconUrl: string; channels: string[] } | null = null;
+	let selectedGuild: Guild | null = null;
+	let activeGuild: Guild | null = null;
 	let sidebarItems: SidebarItem[] = [];
 	let currentItem: SidebarItem | null = null;
 	let ws: WebSocket | null = null;
@@ -128,14 +109,25 @@
 							/>
 						</div>
 						<button
-							class="w-[48px] h-[48px] rounded-[50%] overflow-hidden transition-[border-radius] duration-200 hover:rounded-[25%]"
+							class={cn(
+								'w-[48px] h-[48px] rounded-[50%] overflow-hidden transition-[border-radius] duration-200 hover:rounded-[25%]',
+								{
+									'rounded-[25%]': guild === selectedGuild
+								}
+							)}
 							class:selected={selectedGuild === guild}
 							on:click={() => (selectedGuild = guild)}
 							on:keydown={() => (selectedGuild = guild)}
 							on:mouseenter={() => (activeGuild = guild)}
 							on:mouseleave={() => (activeGuild = null)}
 						>
-							<img src={guild.iconUrl} alt={guild.name} />
+							{#if guild.icon}
+								<img src={guild.icon} alt={guild.name} />
+							{:else}
+								<div class="w-full h-full bg-blue-600 flex justify-center items-center">
+									<span class="text-2xl">{guild.name[0]}</span>
+								</div>
+							{/if}
 						</button>
 					</div>
 				{/each}

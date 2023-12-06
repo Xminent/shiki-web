@@ -6,6 +6,12 @@ export type SidebarItem = {
 	icon: typeof HomeIcon;
 };
 
+export type Guild = {
+	id: bigint;
+	name: string;
+	icon?: string;
+};
+
 export type Message = {
 	id: bigint;
 	content: string;
