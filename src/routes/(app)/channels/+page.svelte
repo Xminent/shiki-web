@@ -2,7 +2,7 @@
 	import MainContent from '$lib/components/main-content.svelte';
 	import Sidebar from '$lib/components/sidebar.svelte';
 	import { messageStore, updateMessages } from '$lib/messages';
-	import { cn } from '$lib/utils';
+	import { cn, parseWithBigInt } from '$lib/utils';
 	import { HashIcon } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import type { Message, SidebarItem } from '../../../types/sidebar';
@@ -36,35 +36,55 @@
 	let activeGuild: { name: string; iconUrl: string; channels: string[] } | null = null;
 	let sidebarItems: SidebarItem[] = [];
 	let currentItem: SidebarItem | null = null;
+	let ws: WebSocket | null = null;
 
-	const isBigNumber = (num: number) => !Number.isSafeInteger(+num);
-	const enquoteBigNumber = (jsonString: string, bigNumChecker: Function) =>
-		jsonString.replaceAll(/([:\s\[,]*)(\d+)([\s,\]]*)/g, (matchingSubstr, prefix, bigNum, suffix) =>
-			bigNumChecker(bigNum) ? `${prefix}"${bigNum}"${suffix}` : matchingSubstr
-		);
-	const parseWithBigInt = (jsonString: string, bigNumChecker: Function) =>
-		JSON.parse(enquoteBigNumber(jsonString, bigNumChecker), (_, value) =>
-			!isNaN(value) && bigNumChecker(value) ? BigInt(value) : value
-		);
+	onMount(() => {
+		(async () => {
+			try {
+				const res = await fetch('http://localhost:8080/api/channels', {
+					method: 'GET',
+					headers: {
+						Authorization: 'Bearer e2c06ec7-640d-4684-88c3-e036ea9a5e98'
+					}
+				});
 
-	onMount(async () => {
-		const res = await fetch('http://localhost:8080/api/channels', {
-			method: 'GET',
-			headers: {
-				Authorization: 'Bearer e2c06ec7-640d-4684-88c3-e036ea9a5e98'
+				const data = parseWithBigInt(await res.text());
+
+				sidebarItems = data.map((item: any) => {
+					return {
+						id: item.id,
+						name: item.name,
+						icon: HashIcon,
+						messages: []
+					};
+				});
+			} catch (error) {
+				console.error(`Could not fetch channels: ${error}`);
 			}
-		});
 
-		const data = parseWithBigInt(await res.text(), isBigNumber);
+			ws = new WebSocket('ws://localhost:8080/gateway');
 
-		sidebarItems = data.map((item: any) => {
-			return {
-				id: item.id,
-				name: item.name,
-				icon: HashIcon,
-				messages: []
+			ws.onopen = () => {
+				const identify = JSON.stringify({
+					op: 0,
+					d: {
+						token: 'e2c06ec7-640d-4684-88c3-e036ea9a5e98'
+					}
+				});
+				ws?.send(identify);
+
+				console.log('Connected and sent identify', identify);
 			};
-		});
+
+			ws.onmessage = (event) => {
+				console.log({ wsData: event.data });
+			};
+		})();
+
+		return () => {
+			ws?.close();
+			ws = null;
+		};
 	});
 
 	async function onItemClick(item: SidebarItem) {
@@ -77,7 +97,7 @@
 			}
 		});
 
-		const data = parseWithBigInt(await res.text(), isBigNumber);
+		const data = parseWithBigInt(await res.text());
 
 		updateMessages(item.id, data ?? []);
 	}
