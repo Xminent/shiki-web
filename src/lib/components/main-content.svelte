@@ -4,6 +4,7 @@
 
 	export let item: SidebarItem;
 	export let messages: Message[];
+	export let compactList: boolean[];
 </script>
 
 <div class="flex flex-col overflow-hidden flex-grow h-[100vh]">
@@ -15,9 +16,9 @@
 	</section>
 	<section class=" overflow-y-auto scrollable-section">
 		<ul class="p-2">
-			{#each messages as message}
+			{#each messages as message, i}
 				<li class="text-sm text-gray-600 dark:text-zinc-300">
-					<MessageItem {message} />
+					<MessageItem {message} isCompact={compactList[i]} />
 				</li>
 			{/each}
 		</ul>

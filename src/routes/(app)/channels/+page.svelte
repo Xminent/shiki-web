@@ -112,6 +112,26 @@
 		updateMessages(item.id, messages ?? []);
 	}
 
+	function getCompactList(messages: Message[]) {
+		const ret = messages.map(() => false);
+
+		// If we have consecutive messages sent by the same author, we compact it.
+		for (let i = 1; i < messages.length - 1; i++) {
+			const msg = messages[i];
+			const lastMsg = messages[i - 1];
+
+			if (
+				msg.author.id === lastMsg.author.id &&
+				Math.abs(lastMsg.createdAt.getMilliseconds() - msg.createdAt.getMilliseconds()) <
+					5 * 60 * 1000
+			) {
+				ret[i] = true;
+			}
+		}
+
+		return ret;
+	}
+
 	let messages: Message[] = [];
 
 	$: {
@@ -165,7 +185,7 @@
 	</nav>
 	<Sidebar items={sidebarItems} {onItemClick} />
 	{#if currentItem}
-		<MainContent item={currentItem} {messages} />
+		<MainContent item={currentItem} {messages} compactList={getCompactList(messages)} />
 	{/if}
 </div>
 
