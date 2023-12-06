@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_BACKEND_URL, PUBLIC_GATEWAY_URL } from '$env/static/public';
 	import MainContent from '$lib/components/main-content.svelte';
 	import Sidebar from '$lib/components/sidebar.svelte';
 	import { messageStore, updateMessages } from '$lib/messages';
@@ -32,7 +33,7 @@
 	onMount(() => {
 		(async () => {
 			try {
-				const res = await fetch('http://localhost:8080/api/channels', {
+				const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels`, {
 					method: 'GET',
 					headers: {
 						Authorization: 'Bearer e2c06ec7-640d-4684-88c3-e036ea9a5e98'
@@ -53,7 +54,7 @@
 				console.error(`Could not fetch channels: ${error}`);
 			}
 
-			ws = new WebSocket('ws://localhost:8080/gateway');
+			ws = new WebSocket(PUBLIC_GATEWAY_URL);
 
 			ws.onopen = () => {
 				const identify = JSON.stringify({
@@ -96,7 +97,7 @@
 	async function onItemClick(item: SidebarItem) {
 		currentItem = item;
 
-		const res = await fetch(`http://localhost:8080/api/channels/${item.id}/messages`, {
+		const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels/${item.id}/messages`, {
 			method: 'GET',
 			headers: {
 				Authorization: 'Bearer e2c06ec7-640d-4684-88c3-e036ea9a5e98'

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_RTC_URL } from '$env/static/public';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
@@ -73,7 +74,7 @@
 		}
 
 		try {
-			const response = await fetch('http://localhost:8080/connect', {
+			const response = await fetch(PUBLIC_RTC_URL, {
 				method: 'POST',
 				body: sdp
 			});

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { PUBLIC_BACKEND_URL } from '$env/static/public';
 	import { login } from '$lib/auth';
 	import { cn } from '$lib/utils';
 	import { userAuthLoginSchema, userAuthSignupSchema } from '$lib/validations/auth';
@@ -41,7 +42,7 @@
 		isLoading = true;
 
 		try {
-			const res = await fetch(`http://localhost:8080/auth/${signUp ? 'register' : 'login'}`, {
+			const res = await fetch(`${PUBLIC_BACKEND_URL}/${signUp ? 'register' : 'login'}`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
