@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Message, SidebarItem } from '../../types/sidebar';
 	import MessageItem from './message-item.svelte';
-	import Input from './ui/input/input.svelte';
 
 	export let item: SidebarItem;
 	export let messages: Message[];
@@ -10,10 +9,15 @@
 
 	let inputText = '';
 	let messageList: HTMLElement;
+	let textareaRows = 1;
 
 	const scrollToBottom = async (node: HTMLElement) => {
 		node.scroll({ top: node.scrollHeight, behavior: 'instant' });
 	};
+
+	$: {
+		textareaRows = Math.min(inputText.split('\n').length, 10);
+	}
 </script>
 
 <div class="flex flex-col overflow-hidden flex-grow h-[100vh]">
@@ -33,16 +37,31 @@
 		</ul>
 	</section>
 	<section class="p-4 w-full">
-		<Input
-			type="text"
+		<textarea
+			class="w-full px-4 py-2 text-sm bg-gray-200 dark:bg-zinc-900 rounded-md focus:outline-none text-black dark:text-white resize-none"
+			rows={textareaRows}
 			bind:value={inputText}
 			placeholder={`Message #${item.name}`}
 			on:keydown={(e) => {
-				if (e.key !== 'Enter' || inputText === '') {
+				const text = inputText.trim();
+
+				if (e.key === 'Enter') {
+					if (e.shiftKey) {
+						return;
+					}
+
+					if (!text) {
+						e.preventDefault();
+						return;
+					}
+				}
+
+				if (e.key !== 'Enter' || e.shiftKey || !text) {
 					return;
 				}
 
-				onSendMessage(inputText);
+				e.preventDefault();
+				onSendMessage(text);
 				inputText = '';
 				scrollToBottom(messageList);
 			}}

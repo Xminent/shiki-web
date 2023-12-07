@@ -28,7 +28,7 @@
 				</p>
 			{/if}
 			{#if !isCompact}
-				<p class="text-gray-400">
+				<p class="text-gray-400 text-[12px]">
 					{new Date(message.createdAt).toLocaleString()}
 				</p>
 			{/if}
