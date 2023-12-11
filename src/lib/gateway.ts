@@ -1,7 +1,13 @@
 import { PUBLIC_GATEWAY_URL } from '$env/static/public';
-import { deserializeMessage } from '../types/sidebar';
-import { messageStore } from './messages';
+import { deserializeChannel, deserializeMessage } from '../types/sidebar';
+import { channelStore, messageStore } from './gateway/stores';
 import { parseWithBigInt } from './utils';
+
+enum GatewayEvent {
+	Identify = 0,
+	MessageCreate = 2,
+	ChannelCreate = 3
+}
 
 export class GatewayClient {
 	private token: string;
@@ -13,7 +19,7 @@ export class GatewayClient {
 
 		this.ws.onopen = () => {
 			const identify = JSON.stringify({
-				op: 0,
+				op: GatewayEvent.Identify,
 				d: {
 					token: this.token
 				}
@@ -31,19 +37,11 @@ export class GatewayClient {
 			console.log('Received gateway message', data);
 			const { op, d } = data;
 
-			if (op === 2) {
-				const message = deserializeMessage(d);
-
-				if (!message) {
-					return;
-				}
-
-				const channelId = message.channelId.toString();
-
-				messageStore.update((store) => {
-					store[channelId] = [...(store[channelId] || []), message];
-					return store;
-				});
+			switch (op) {
+				case GatewayEvent.MessageCreate:
+					return this.handleMessageCreate(d);
+				case GatewayEvent.ChannelCreate:
+					return this.handleChannelCreate(d);
 			}
 		} catch (error) {
 			console.error(error);
@@ -52,5 +50,33 @@ export class GatewayClient {
 
 	close() {
 		this.ws.close();
+	}
+
+	private async handleMessageCreate(data: unknown) {
+		const message = deserializeMessage(data);
+
+		if (!message) {
+			return;
+		}
+
+		const channelId = message.channelId.toString();
+
+		messageStore.update((store) => {
+			store[channelId] = [...(store[channelId] || []), message];
+			return store;
+		});
+	}
+
+	private async handleChannelCreate(data: unknown) {
+		const channel = deserializeChannel(data);
+
+		if (!channel) {
+			return;
+		}
+
+		channelStore.update((store) => {
+			store[channel.id.toString()] = channel;
+			return store;
+		});
 	}
 }

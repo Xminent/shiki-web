@@ -1,20 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { PUBLIC_BACKEND_URL } from '$env/static/public';
 	import { token } from '$lib/auth';
 	import MainContent from '$lib/components/main-content.svelte';
 	import Sidebar from '$lib/components/sidebar.svelte';
 	import { GatewayClient } from '$lib/gateway';
-	import { messageStore, updateMessages } from '$lib/messages';
-	import { cn, parseWithBigInt } from '$lib/utils';
+	import { fetchChannels, fetchMessages, sendMessage } from '$lib/gateway/api';
+	import { channelStore, messageStore } from '$lib/gateway/stores';
+	import { cn } from '$lib/utils';
 	import { HashIcon } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import {
-		deserializeMessage,
-		type Guild,
-		type Message,
-		type SidebarItem
-	} from '../../../types/sidebar';
+	import type { Guild, Message, SidebarItem } from '../../../types/sidebar';
 
 	let guilds: Guild[] = [
 		{
@@ -38,31 +33,8 @@
 			return goto('/login');
 		}
 
-		(async () => {
-			try {
-				const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels`, {
-					method: 'GET',
-					headers: {
-						Authorization: `Bearer ${$token}`
-					}
-				});
-
-				const data = parseWithBigInt(await res.text());
-
-				sidebarItems = data.map((item: any) => {
-					return {
-						id: item.id,
-						name: item.name,
-						icon: HashIcon,
-						messages: []
-					};
-				});
-			} catch (error) {
-				console.error(`Could not fetch channels: ${error}`);
-			}
-
-			gatewayClient = new GatewayClient($token);
-		})();
+		fetchChannels($token);
+		gatewayClient = new GatewayClient($token);
 
 		return () => {
 			gatewayClient?.close();
@@ -71,21 +43,13 @@
 	});
 
 	async function onItemClick(item: SidebarItem) {
+		if (!$token) {
+			return goto('/login');
+		}
+
 		currentItem = item;
-
-		const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels/${item.id}/messages`, {
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${$token}`
-			}
-		});
-
-		const data = parseWithBigInt(await res.text());
-		const messages = data.map((item: any) => {
-			return deserializeMessage(item);
-		});
-
-		updateMessages(item.id, messages ?? []);
+		// TODO: Prevent unnecessary fetches
+		await fetchMessages(item.id, $token);
 	}
 
 	function getCompactList(messages: Message[]) {
@@ -105,6 +69,17 @@
 		return ret;
 	}
 
+	channelStore.subscribe((channels) => {
+		sidebarItems = Object.values(channels).map((item) => {
+			return {
+				id: item.id,
+				name: item.name,
+				icon: HashIcon,
+				messages: []
+			};
+		});
+	});
+
 	let messages: Message[] = [];
 
 	$: {
@@ -116,20 +91,15 @@
 	}
 
 	async function onSendMessage(message: string) {
+		if (!$token) {
+			return goto('/login');
+		}
+
 		if (!currentItem) {
 			return;
 		}
 
-		await fetch(`${PUBLIC_BACKEND_URL}/api/channels/${currentItem.id}/messages`, {
-			method: 'POST',
-			headers: {
-				Authorization: 'Bearer e2c06ec7-640d-4684-88c3-e036ea9a5e98',
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				content: message
-			})
-		});
+		await sendMessage(currentItem.id, message, $token);
 	}
 </script>
 

@@ -12,6 +12,18 @@ export type Guild = {
 	icon?: string;
 };
 
+export type Channel = {
+	id: bigint;
+	name: string;
+};
+
+export const deserializeChannel = (data: any): Channel => {
+	return {
+		id: BigInt(data.id),
+		name: data.name
+	};
+};
+
 export type Message = {
 	id: bigint;
 	channelId: bigint;
