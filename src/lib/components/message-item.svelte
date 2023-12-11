@@ -4,6 +4,8 @@
 
 	export let message: Message;
 	export let isCompact: boolean = false;
+	export let isUrl: boolean;
+
 	let isHovered = false;
 </script>
 
@@ -34,9 +36,20 @@
 			{/if}
 		</div>
 		{#if !isCompact}
-			<p>
-				{message.content}
-			</p>
+			{#if isUrl}
+				<a
+					href={message.content}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="text-blue-500 hover:text-blue-700"
+				>
+					{message.content}
+				</a>
+			{:else}
+				<p>
+					{message.content}
+				</p>
+			{/if}
 		{:else}
 			<div class="flex flex-row items-center gap-2">
 				<p class={cn('text-[10px] opacity-0', isHovered && 'opacity-100')}>
@@ -45,9 +58,20 @@
 						minute: '2-digit'
 					})}
 				</p>
-				<p>
-					{message.content}
-				</p>
+				{#if isUrl}
+					<a
+						href={message.content}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-blue-500 hover:text-blue-700"
+					>
+						{message.content}
+					</a>
+				{:else}
+					<p>
+						{message.content}
+					</p>
+				{/if}
 			</div>
 		{/if}
 	</div>
