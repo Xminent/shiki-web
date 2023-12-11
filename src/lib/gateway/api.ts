@@ -1,6 +1,6 @@
 import { PUBLIC_BACKEND_URL } from '$env/static/public';
 import { channelStore, messageStore } from '$lib/gateway/stores';
-import { parseWithBigInt } from '$lib/utils';
+import JSONbig from 'json-bigint';
 import { deserializeMessage, type Channel } from '../../types/sidebar';
 
 export const fetchChannels = async (token: string) => {
@@ -12,7 +12,7 @@ export const fetchChannels = async (token: string) => {
 			}
 		});
 
-		const channels = parseWithBigInt(await res.text()) as Channel[];
+		const channels = JSONbig.parse(await res.text()) as Channel[];
 
 		channelStore.update((store) => {
 			channels.forEach((channel: Channel) => {
@@ -39,7 +39,7 @@ export const fetchMessages = async (channelId: bigint, token: string) => {
 			}
 		});
 
-		const data = parseWithBigInt(await res.text());
+		const data = JSONbig.parse(await res.text());
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const messages = data.map((item: any) => {
 			return deserializeMessage(item);

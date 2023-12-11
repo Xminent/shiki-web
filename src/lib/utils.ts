@@ -54,15 +54,3 @@ export const flyAndScale = (
 		easing: cubicOut
 	};
 };
-
-const isBigNumber = (num: number) => !Number.isSafeInteger(+num);
-
-const enquoteBigNumber = (jsonString: string) =>
-	jsonString.replaceAll(/([:\s[,]*)(\d+)([\s,\]]*)/g, (matchingSubstr, prefix, bigNum, suffix) =>
-		isBigNumber(bigNum) ? `${prefix}"${bigNum}"${suffix}` : matchingSubstr
-	);
-
-export const parseWithBigInt = (jsonString: string) =>
-	JSON.parse(enquoteBigNumber(jsonString), (_, value) =>
-		!isNaN(value) && isBigNumber(value) ? BigInt(value) : value
-	);

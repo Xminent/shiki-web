@@ -17,6 +17,7 @@ export type Channel = {
 	name: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const deserializeChannel = (data: any): Channel => {
 	return {
 		id: BigInt(data.id),

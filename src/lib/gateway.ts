@@ -1,7 +1,7 @@
 import { PUBLIC_GATEWAY_URL } from '$env/static/public';
+import JSONbig from 'json-bigint';
 import { deserializeChannel, deserializeMessage } from '../types/sidebar';
 import { channelStore, messageStore } from './gateway/stores';
-import { parseWithBigInt } from './utils';
 
 enum GatewayEvent {
 	Identify = 0,
@@ -33,7 +33,7 @@ export class GatewayClient {
 
 	private onMessage(event: MessageEvent) {
 		try {
-			const data = parseWithBigInt(event.data);
+			const data = JSONbig.parse(event.data);
 			console.log('Received gateway message', data);
 			const { op, d } = data;
 
