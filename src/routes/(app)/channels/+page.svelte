@@ -1,7 +1,10 @@
 <script lang="ts">
-	import { PUBLIC_BACKEND_URL, PUBLIC_GATEWAY_URL } from '$env/static/public';
+	import { goto } from '$app/navigation';
+	import { PUBLIC_BACKEND_URL } from '$env/static/public';
+	import { token } from '$lib/auth';
 	import MainContent from '$lib/components/main-content.svelte';
 	import Sidebar from '$lib/components/sidebar.svelte';
+	import { GatewayClient } from '$lib/gateway';
 	import { messageStore, updateMessages } from '$lib/messages';
 	import { cn, parseWithBigInt } from '$lib/utils';
 	import { HashIcon } from 'lucide-svelte';
@@ -28,15 +31,19 @@
 	let activeGuild: Guild | null = null;
 	let sidebarItems: SidebarItem[] = [];
 	let currentItem: SidebarItem | null = null;
-	let ws: WebSocket | null = null;
+	let gatewayClient: GatewayClient | null = null;
 
 	onMount(() => {
+		if (!$token) {
+			return goto('/login');
+		}
+
 		(async () => {
 			try {
 				const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels`, {
 					method: 'GET',
 					headers: {
-						Authorization: 'Bearer e2c06ec7-640d-4684-88c3-e036ea9a5e98'
+						Authorization: `Bearer ${$token}`
 					}
 				});
 
@@ -54,43 +61,12 @@
 				console.error(`Could not fetch channels: ${error}`);
 			}
 
-			ws = new WebSocket(PUBLIC_GATEWAY_URL);
-
-			ws.onopen = () => {
-				const identify = JSON.stringify({
-					op: 0,
-					d: {
-						token: 'e2c06ec7-640d-4684-88c3-e036ea9a5e98'
-					}
-				});
-				ws?.send(identify);
-
-				console.log('Connected and sent identify', identify);
-			};
-
-			ws.onmessage = (event) => {
-				// Handle message create event.
-				const data = parseWithBigInt(event.data);
-				console.log({ wsCreate: data });
-				const { op, d } = data;
-
-				if (op === 2) {
-					const message = deserializeMessage(d);
-
-					if (!message) {
-						return;
-					}
-
-					const { channelId } = message;
-
-					updateMessages(channelId, [...($messageStore[channelId.toString()] ?? []), message]);
-				}
-			};
+			gatewayClient = new GatewayClient($token);
 		})();
 
 		return () => {
-			ws?.close();
-			ws = null;
+			gatewayClient?.close();
+			gatewayClient = null;
 		};
 	});
 
@@ -100,7 +76,7 @@
 		const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels/${item.id}/messages`, {
 			method: 'GET',
 			headers: {
-				Authorization: 'Bearer e2c06ec7-640d-4684-88c3-e036ea9a5e98'
+				Authorization: `Bearer ${$token}`
 			}
 		});
 
