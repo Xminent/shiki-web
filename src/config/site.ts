@@ -7,10 +7,6 @@ export const siteConfig = {
 		{
 			title: 'Chat',
 			href: '/chat'
-		},
-		{
-			title: 'Download',
-			href: '/download'
 		}
 	],
 	links: {
