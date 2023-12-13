@@ -42,7 +42,7 @@
 		isLoading = true;
 
 		try {
-			const res = await fetch(`${PUBLIC_BACKEND_URL}/${signUp ? 'register' : 'login'}`, {
+			const res = await fetch(`${PUBLIC_BACKEND_URL}/${signUp ? 'auth/register' : 'auth/login'}`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

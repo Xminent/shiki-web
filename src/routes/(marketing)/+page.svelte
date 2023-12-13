@@ -10,29 +10,27 @@
 	let isDesktop = true;
 
 	onMount(() => {
-		// const userAgent = headers().get('user-agent');
-		// if (!userAgent) {
-		// 	platformStr = '';
-		// 	isDesktop = true;
-		// } else if (userAgent.includes('Win')) {
-		// 	platformStr = 'for Windows';
-		// 	isDesktop = true;
-		// } else if (userAgent.includes('like Mac')) {
-		// 	platformStr = 'from App Store';
-		// 	isDesktop = false;
-		// } else if (userAgent.includes('Mac')) {
-		// 	platformStr = 'for Mac';
-		// 	isDesktop = true;
-		// } else if (userAgent.includes('Android')) {
-		// 	platformStr = 'on Google Play';
-		// 	isDesktop = false;
-		// } else if (userAgent.includes('Linux')) {
-		// 	platformStr = 'for Linux';
-		// 	isDesktop = true;
-		// } else {
-		// 	platformStr = '';
-		// 	isDesktop = true;
-		// }
+		const userAgent = navigator.userAgent;
+
+		if (!userAgent) {
+			platformStr = '';
+			isDesktop = true;
+		} else if (userAgent.includes('Win')) {
+			platformStr = 'for Windows';
+			isDesktop = true;
+		} else if (userAgent.includes('like Mac')) {
+			platformStr = 'from App Store';
+			isDesktop = false;
+		} else if (userAgent.includes('Mac')) {
+			platformStr = 'for Mac';
+			isDesktop = true;
+		} else if (userAgent.includes('Android')) {
+			platformStr = 'on Google Play';
+			isDesktop = false;
+		} else if (userAgent.includes('Linux')) {
+			platformStr = 'for Linux';
+			isDesktop = true;
+		}
 	});
 </script>
 
