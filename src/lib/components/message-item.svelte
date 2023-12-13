@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 	import type { Message } from '../../types/sidebar';
+	import FakeLink from './fake-link.svelte';
 
 	export let message: Message;
 	export let isCompact: boolean = false;
@@ -23,32 +24,15 @@
 		/>
 	{/if}
 	<div class="flex-flex-col">
-		<div class="flex flex-row gap-2">
-			{#if !isCompact}
-				<p class="font-bold">
-					{message.author.username}
-				</p>
-			{/if}
-			{#if !isCompact}
-				<p class="text-gray-400 text-[12px]">
-					{new Date(message.createdAt).toLocaleString()}
-				</p>
-			{/if}
-		</div>
 		{#if !isCompact}
+			<div class="flex flex-row gap-2">
+				<p class="font-bold">{message.author.username}</p>
+				<p class="text-gray-400 text-[12px]">{new Date(message.createdAt).toLocaleString()}</p>
+			</div>
 			{#if isUrl}
-				<a
-					href={message.content}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="text-blue-500 hover:text-blue-700"
-				>
-					{message.content}
-				</a>
+				<FakeLink href={message.content} />
 			{:else}
-				<p>
-					{message.content}
-				</p>
+				<p>{message.content}</p>
 			{/if}
 		{:else}
 			<div class="flex flex-row items-center gap-2">
@@ -59,18 +43,9 @@
 					})}
 				</p>
 				{#if isUrl}
-					<a
-						href={message.content}
-						target="_blank"
-						rel="noopener noreferrer"
-						class="text-blue-500 hover:text-blue-700"
-					>
-						{message.content}
-					</a>
+					<FakeLink href={message.content} />
 				{:else}
-					<p>
-						{message.content}
-					</p>
+					<p>{message.content}</p>
 				{/if}
 			</div>
 		{/if}
