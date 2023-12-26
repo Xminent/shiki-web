@@ -1,9 +1,21 @@
 import { PUBLIC_BACKEND_URL } from '$env/static/public';
 import { channelStore, messageStore } from '$lib/gateway/stores';
 import JSONbig from 'json-bigint';
-import { deserializeMessage, type Channel } from '../../types/sidebar';
+import {
+	deserializeChannel,
+	deserializeMessage,
+	type Channel,
+	type Message
+} from '../../types/sidebar';
 
-export const fetchChannels = async (token: string) => {
+export const fetchChannels = async (
+	token: string,
+	fetchedBefore: () => boolean
+): Promise<Channel[]> => {
+	if (fetchedBefore()) {
+		return [];
+	}
+
 	try {
 		const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels`, {
 			method: 'GET',
@@ -12,14 +24,16 @@ export const fetchChannels = async (token: string) => {
 			}
 		});
 
-		const channels = JSONbig.parse(await res.text()) as Channel[];
+		const data = JSONbig.parse(await res.text());
+		const channels = data.map((item: unknown) => {
+			return deserializeChannel(item);
+		});
+
+		console.log(`Fetched ${channels.length} channels`);
 
 		channelStore.update((store) => {
 			channels.forEach((channel: Channel) => {
-				store[channel.id.toString()] = {
-					id: channel.id,
-					name: channel.name
-				};
+				store[channel.id.toString()] = channel;
 			});
 
 			return store;
@@ -32,7 +46,15 @@ export const fetchChannels = async (token: string) => {
 	}
 };
 
-export const fetchMessages = async (channelId: bigint, token: string) => {
+export const fetchMessages = async (
+	channelId: bigint,
+	token: string,
+	fetchedBefore: (channelId: bigint) => boolean
+): Promise<Message[]> => {
+	if (fetchedBefore(channelId)) {
+		return [];
+	}
+
 	try {
 		const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels/${channelId}/messages`, {
 			method: 'GET',
@@ -42,19 +64,21 @@ export const fetchMessages = async (channelId: bigint, token: string) => {
 		});
 
 		const data = JSONbig.parse(await res.text());
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const messages = data.map((item: any) => {
+		const messages = data.map((item: unknown) => {
 			return deserializeMessage(item);
 		});
 
+		console.log(`Fetched ${messages.length} messages for channel ${channelId}`);
+
 		messageStore.update((store) => {
-			store[channelId.toString()] = messages ?? [];
+			store[channelId.toString()] = messages;
 			return store;
 		});
 
-		console.log(`Fetched ${messages.length} messages for channel ${channelId}`);
+		return messages;
 	} catch (error) {
 		console.error(`Could not fetch messages: ${error}`);
+		return [];
 	}
 };
 

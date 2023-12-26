@@ -5,7 +5,7 @@
 	import Sidebar from '$lib/components/sidebar.svelte';
 	import { GatewayClient } from '$lib/gateway';
 	import { fetchChannels, fetchMessages } from '$lib/gateway/api';
-	import { channelStore, currentSidebarItem } from '$lib/gateway/stores';
+	import { channelStore, currentSidebarItem, messageStore } from '$lib/gateway/stores';
 	import { cn } from '$lib/utils';
 	import { HashIcon } from 'lucide-svelte';
 	import { onMount } from 'svelte';
@@ -28,35 +28,30 @@
 	let gatewayClient: GatewayClient | null = null;
 
 	onMount(() => {
-		console.log('(layout) on moutn');
-
 		(async () => {
 			if (!$token) {
 				return goto('/login');
 			}
 
 			const { slug } = $page.params;
-			console.log({ slugLayout: slug });
-			await fetchChannels($token);
+			const channels =
+				(await fetchChannels($token, () => Object.entries($channelStore).length > 0)) ||
+				Object.values($channelStore);
 
-			channelStore.subscribe(() => {
-				if (sidebarItems.length === 0) {
-					// No channel to show.
-					return goto('/channels');
-				}
+			const item = channels.find((item) => item.id.toString() === slug);
 
-				const item = sidebarItems.find((item) => item.id.toString() === slug);
+			if (!item) {
+				return goto('/channels');
+			}
 
-				if (!item) {
-					console.log('(layout) redirecting..');
-					return goto('/channels');
-				}
+			currentSidebarItem.set({
+				id: item.id,
+				name: item.name,
+				icon: HashIcon
+			});
 
-				currentSidebarItem.set(item);
-
-				if ($token) {
-					fetchMessages(item.id, $token);
-				}
+			fetchMessages(item.id, $token, (channelId) => {
+				return Object.keys($messageStore).includes(channelId.toString());
 			});
 
 			gatewayClient = new GatewayClient($token);
@@ -67,6 +62,17 @@
 			gatewayClient = null;
 		};
 	});
+
+	$: {
+		sidebarItems = Object.values($channelStore).map((item) => {
+			return {
+				id: item.id,
+				name: item.name,
+				icon: HashIcon,
+				messages: []
+			};
+		});
+	}
 
 	async function onItemClick(item: SidebarItem) {
 		if (!$token) {
@@ -79,20 +85,11 @@
 
 		currentSidebarItem.set(item);
 		// TODO: Prevent unnecessary fetches
-		await fetchMessages(item.id, $token);
+		await fetchMessages(item.id, $token, (channelId) => {
+			return Object.keys($messageStore).includes(channelId.toString());
+		});
 		goto(`/channels/${item.id}`);
 	}
-
-	channelStore.subscribe((channels) => {
-		sidebarItems = Object.values(channels).map((item) => {
-			return {
-				id: item.id,
-				name: item.name,
-				icon: HashIcon,
-				messages: []
-			};
-		});
-	});
 </script>
 
 <div class="flex min-h-screen flex-row">

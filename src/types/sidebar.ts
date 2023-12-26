@@ -14,13 +14,17 @@ export type Guild = {
 
 export type Channel = {
 	id: bigint;
+	guildId?: bigint;
 	name: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const deserializeChannel = (data: any): Channel => {
+	const guildId = data.guild_id ? BigInt(data.guild_id) : undefined;
+
 	return {
 		id: BigInt(data.id),
+		guildId,
 		name: data.name
 	};
 };
