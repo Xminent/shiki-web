@@ -22,7 +22,7 @@
 					<div class="flex justify-center items-center">
 						<slot />
 					</div>
-					<div class="flex justify-start items-center text-sm font-medium">
+					<div class="flex justify-start items-center text-sm font-medium truncate">
 						{name}
 					</div>
 				</div>

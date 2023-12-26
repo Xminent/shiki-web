@@ -1,16 +1,33 @@
 <script lang="ts">
+	import { token } from '$lib/auth';
 	import * as Collapsible from '$lib/components/ui/collapsible';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import { createChannel } from '$lib/gateway/api';
 	import { cn } from '$lib/utils';
-	import { ChevronDown } from 'lucide-svelte';
+	import { ChevronDown, HashIcon, Plus } from 'lucide-svelte';
 	import type { SidebarItem } from '../../types/sidebar';
 	import ChannelItem from './channel-item.svelte';
+	import { Button } from './ui/button';
+	import { Input } from './ui/input';
+	import { Label } from './ui/label';
 
 	export let items: SidebarItem[];
 	export let onItemClick: (item: SidebarItem) => void;
 	export let selectedItem: SidebarItem | null;
 
-	let collapsibleOpen = false;
+	let channelName = '';
+	let collapsibleOpen = true;
 	let hovered = false;
+	let newChannelDialogOpen = false;
+
+	async function onCreateChannel() {
+		if (!$token) {
+			return;
+		}
+
+		await createChannel($token, channelName);
+		newChannelDialogOpen = false;
+	}
 </script>
 
 <div class="w-[240px] flex flex-col bg-gray-300 dark:bg-zinc-800">
@@ -32,14 +49,47 @@
 		on:mouseenter={() => (hovered = true)}
 	>
 		<div class="flex flex-col justify-center items-center gap-2">
-			<button class="w-full" on:click={() => (collapsibleOpen = !collapsibleOpen)}>
-				<div class="flex flex-row justify-start items-center gap-2 p-1">
-					<ChevronDown
-						class={cn('w-4 h-4 transition-transform duration-200', collapsibleOpen && '-rotate-90')}
-					/>
-					<p class="font-bold text-sm leading-4">Text Channels</p>
-				</div>
-			</button>
+			<div class="w-full flex flex-row justify-between gap-2 p-1">
+				<button on:click={() => (collapsibleOpen = !collapsibleOpen)}>
+					<div class="flex flex-row flex-grow justify-start items-center">
+						<ChevronDown
+							class={cn(
+								'w-4 h-4 transition-transform duration-200',
+								collapsibleOpen && '-rotate-90'
+							)}
+						/>
+						<p class="font-bold text-sm leading-4">Text Channels</p>
+					</div>
+				</button>
+				<Dialog.Root bind:open={newChannelDialogOpen}>
+					<Dialog.Trigger>
+						<Plus class="w-4 h-4" />
+					</Dialog.Trigger>
+					<Dialog.Content>
+						<Dialog.Header>
+							<Dialog.Title>Create Channel</Dialog.Title>
+							<Dialog.Description>in Text Channels</Dialog.Description>
+						</Dialog.Header>
+						<div class="flex flex-col justify-center items-start gap-2">
+							<Label for="channel-name">Channel Name</Label>
+							<div class="flex flex-row items-center gap-2">
+								<HashIcon class="w-4 h-4" />
+								<Input id="channel-name" placeholder="new-channel" bind:value={channelName} />
+							</div>
+						</div>
+						<Dialog.Footer>
+							<Button
+								class="bg-indigo-500 hover:bg-indigo-600"
+								variant="ghost"
+								disabled={channelName.length === 0}
+								on:click={onCreateChannel}
+							>
+								Create Channel</Button
+							>
+						</Dialog.Footer>
+					</Dialog.Content>
+				</Dialog.Root>
+			</div>
 			<Collapsible.Root bind:open={collapsibleOpen} class="w-full">
 				{#if selectedItem && !collapsibleOpen}
 					<ChannelItem

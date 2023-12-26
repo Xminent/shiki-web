@@ -8,6 +8,31 @@ import {
 	type Message
 } from '../../types/sidebar';
 
+export const createChannel = async (token: string, name: string): Promise<Channel | null> => {
+	try {
+		const res = await fetch(`${PUBLIC_BACKEND_URL}/api/channels`, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ name })
+		});
+
+		const data = JSONbig.parse(await res.text());
+
+		channelStore.update((store) => {
+			store[data.id.toString()] = data;
+			return store;
+		});
+
+		return data;
+	} catch (error) {
+		console.error(`Could not create channel: ${error}`);
+		return null;
+	}
+};
+
 export const fetchChannels = async (
 	token: string,
 	fetchedBefore: () => boolean
