@@ -1,5 +1,7 @@
 <script lang="ts">
+	import * as Collapsible from '$lib/components/ui/collapsible';
 	import { cn } from '$lib/utils';
+	import { ChevronDown } from 'lucide-svelte';
 	import type { SidebarItem } from '../../types/sidebar';
 	import ChannelItem from './channel-item.svelte';
 
@@ -7,7 +9,7 @@
 	export let onItemClick: (item: SidebarItem) => void;
 	export let selectedItem: SidebarItem | null;
 
-	let contextMenuOpen: boolean;
+	let collapsibleOpen = false;
 	let hovered = false;
 </script>
 
@@ -29,20 +31,46 @@
 		})}
 		on:mouseenter={() => (hovered = true)}
 	>
-		<div class="flex flex-col justify-center gap-[2px]">
-			<div aria-hidden="true" style="height: 8px;" />
-			{#each items as item}
-				<ChannelItem
-					id={item.id}
-					name={item.name}
-					clicked={selectedItem?.id === item.id}
-					onClick={() => {
-						onItemClick(item);
-					}}
-				>
-					<svelte:component this={item.icon} />
-				</ChannelItem>
-			{/each}
+		<div class="flex flex-col justify-center items-center gap-2">
+			<button class="w-full" on:click={() => (collapsibleOpen = !collapsibleOpen)}>
+				<div class="flex flex-row justify-start items-center gap-2 p-1">
+					<ChevronDown
+						class={cn('w-4 h-4 transition-transform duration-200', collapsibleOpen && '-rotate-90')}
+					/>
+					<p class="font-bold text-sm leading-4">Text Channels</p>
+				</div>
+			</button>
+			<Collapsible.Root bind:open={collapsibleOpen} class="w-full">
+				{#if selectedItem && !collapsibleOpen}
+					<ChannelItem
+						id={selectedItem.id}
+						name={selectedItem.name}
+						clicked
+						onClick={() => {
+							selectedItem && onItemClick(selectedItem);
+						}}
+					>
+						<svelte:component this={selectedItem.icon} />
+					</ChannelItem>
+					<div aria-hidden="true" style="height: 2px;" />
+				{/if}
+				<Collapsible.Content transitionConfig={{ duration: 0 }}>
+					<div class="flex flex-col justify-center gap-[2px]">
+						{#each items as item}
+							<ChannelItem
+								id={item.id}
+								name={item.name}
+								clicked={selectedItem?.id === item.id}
+								onClick={() => {
+									onItemClick(item);
+								}}
+							>
+								<svelte:component this={item.icon} />
+							</ChannelItem>
+						{/each}
+					</div>
+				</Collapsible.Content>
+			</Collapsible.Root>
 		</div>
 	</div>
 </div>
