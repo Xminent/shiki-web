@@ -24,6 +24,8 @@ export const fetchChannels = async (token: string) => {
 
 			return store;
 		});
+
+		return channels;
 	} catch (error) {
 		console.error(`Could not fetch channels: ${error}`);
 		return [];

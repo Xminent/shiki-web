@@ -5,9 +5,9 @@
 
 	export let items: SidebarItem[];
 	export let onItemClick: (item: SidebarItem) => void;
+	export let selectedItem: SidebarItem | null;
 
 	let hovered = false;
-	let selectedItem: SidebarItem | null = null;
 </script>
 
 <div class="w-[240px] flex flex-col bgoverflow-hidden bg-gray-300 dark:bg-zinc-800">
@@ -33,10 +33,9 @@
 			{#each items as item}
 				<ChannelItem
 					name={item.name}
-					clicked={selectedItem === item}
+					clicked={selectedItem?.id === item.id}
 					onClick={() => {
 						onItemClick(item);
-						selectedItem = item;
 					}}
 				>
 					<svelte:component this={item.icon} />
