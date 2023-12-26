@@ -7,6 +7,7 @@
 	export let onItemClick: (item: SidebarItem) => void;
 	export let selectedItem: SidebarItem | null;
 
+	let contextMenuOpen: boolean;
 	let hovered = false;
 </script>
 
@@ -32,6 +33,7 @@
 			<div aria-hidden="true" style="height: 8px;" />
 			{#each items as item}
 				<ChannelItem
+					id={item.id}
 					name={item.name}
 					clicked={selectedItem?.id === item.id}
 					onClick={() => {
